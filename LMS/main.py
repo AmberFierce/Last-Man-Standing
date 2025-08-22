@@ -41,9 +41,7 @@ async def on_ready():
 @bot.event
 async def setup_hook():
     await bot.load_extension("pick")
-    await bot.load_extension("status")
-    await bot.load_extension("leaderboard")
-
+   
 # Run bot in background thread
 def start_bot():
     bot.run(os.getenv("DISCORD_TOKEN"))
@@ -51,3 +49,4 @@ def start_bot():
 if __name__ == "__main__":
     Thread(target=start_bot).start()
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
