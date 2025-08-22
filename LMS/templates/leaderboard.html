@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Last Man Standing</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>🏆 Last Man Standing Leaderboard</h1>
+  <table>
+    <tr><th>Name</th><th>Status</th><th>Wins</th></tr>
+    {% for player in players %}
+    <tr>
+      <td>{{ player[0] }}</td>
+      <td class="{{ 'in' if player[1] == 'In' else 'out' }}">{{ player[1] }}</td>
+      <td>{{ player[2] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+</body>
+</html>
