@@ -7,10 +7,26 @@ import os
 
 # List of valid Premier League teams
 PL_TEAMS = [
-    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton", "Burnley",
-    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Liverpool", "Luton",
-    "Man City", "Man United", "Newcastle", "Nottingham Forest", "Sheffield United",
-    "Tottenham", "West Ham", "Wolves"
+    "Arsenal",
+    "Aston Villa",
+    "AFC Bournemouth",
+    "Brentford",
+    "Brighton & Hove Albion",
+    "Burnley",
+    "Chelsea",
+    "Crystal Palace",
+    "Everton",
+    "Fulham",
+    "Leeds United",
+    "Liverpool",
+    "Manchester City",
+    "Manchester United",
+    "Newcastle United",
+    "Nottingham Forest",
+    "Sunderland",
+    "Tottenham Hotspur",
+    "West Ham United",
+    "Wolverhampton Wanderers"
 ]
 
 DATABASE_URL = os.getenv("DATABASE_URL")
@@ -62,3 +78,4 @@ async def setup(bot):
     cog = Pick(bot)
     await bot.add_cog(cog)
     bot.tree.add_command(cog.pick, guild=cog.guild)
+
