@@ -1,7 +1,6 @@
+discord.py
 fastapi
 uvicorn
 jinja2
-python-dotenv
 psycopg2-binary
-requests
-discord.py
+python-dotenv
