@@ -32,14 +32,17 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"{bot.user.name} is online!")
     try:
-        synced = await bot.tree.sync()
-        print(f"Synced {len(synced)} slash commands.")
+        # Replace with your actual server (guild) ID
+        synced = await bot.tree.sync(guild=discord.Object(id=1117171688531042474))
+        print(f"Synced {len(synced)} slash commands to your guild.")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 
 @bot.event
 async def setup_hook():
-    await bot.load_extension("pick")  # Load your slash command cog
+    await bot.load_extension("pick")
+    await bot.load_extension("status")
+    await bot.load_extension("leaderboard")
 
 # Run bot in background thread
 def start_bot():
@@ -48,4 +51,3 @@ def start_bot():
 if __name__ == "__main__":
     Thread(target=start_bot).start()
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
