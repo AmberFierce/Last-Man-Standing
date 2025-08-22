@@ -43,8 +43,9 @@ async def setup_hook():
 
 # Run bot in background thread
 def start_bot():
-    bot.run(os.getenv("DISCORD_BOT_TOKEN"))
+    bot.run(os.getenv("DISCORD_TOKEN"))
 
 if __name__ == "__main__":
     Thread(target=start_bot).start()
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
