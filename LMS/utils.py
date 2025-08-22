@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, timezone
 
 API_URL = "https://v3.football.api-sports.io"
-API_KEY = os.getenv("API_Key")
+API_KEY = os.getenv("API_KEY")
 HEADERS = {
     "x-apisports-key": API_KEY
 }
@@ -70,4 +70,5 @@ def is_pick_locked():
 
     first_kickoff = min(fixture_times)
     return datetime.now(timezone.utc) >= first_kickoff
+
 
