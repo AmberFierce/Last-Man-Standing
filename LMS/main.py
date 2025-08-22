@@ -32,16 +32,16 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 async def on_ready():
     print(f"{bot.user.name} is online!")
     try:
-        # Replace with your actual server (guild) ID
-        synced = await bot.tree.sync(guild=discord.Object(id=1117171688531042474))
+        guild = discord.Object(id=1117171688531042474)  # Your server ID
+        synced = await bot.tree.sync(guild=guild)
         print(f"Synced {len(synced)} slash commands to your guild.")
     except Exception as e:
         print(f"Failed to sync commands: {e}")
 
 @bot.event
 async def setup_hook():
-    await bot.load_extension("pick")
-   
+    await bot.load_extension("pick")  # Only loading 'pick' cog for now
+
 # Run bot in background thread
 def start_bot():
     bot.run(os.getenv("DISCORD_TOKEN"))
@@ -49,4 +49,3 @@ def start_bot():
 if __name__ == "__main__":
     Thread(target=start_bot).start()
     uvicorn.run(app, host="0.0.0.0", port=8000)
-
