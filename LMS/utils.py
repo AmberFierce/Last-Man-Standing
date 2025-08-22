@@ -3,7 +3,7 @@ import requests
 from datetime import datetime, timezone
 
 API_URL = "https://v3.football.api-sports.io"
-API_KEY = os.getenv("API_KEY")
+API_KEY = os.getenv("API_Key")
 HEADERS = {
     "x-apisports-key": API_KEY
 }
