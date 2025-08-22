@@ -1,53 +1,86 @@
-import os
-from threading import Thread
-
-import uvicorn
 import discord
+from discord import app_commands
 from discord.ext import commands
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from utils import get_current_gameweek, is_pick_locked
+import psycopg2
+import os
 
-from models import init_db, get_leaderboard
+PL_TEAMS = [
+    "Arsenal", "Aston Villa", "Bournemouth", "Brentford", "Brighton & Hove Albion",
+    "Chelsea", "Crystal Palace", "Everton", "Fulham", "Ipswich Town", "Leicester City",
+    "Liverpool", "Manchester City", "Manchester United", "Newcastle United",
+    "Nottingham Forest", "Southampton", "Tottenham Hotspur", "West Ham United",
+    "Wolverhampton Wanderers"
+]
 
-# FastAPI setup
-app = FastAPI()
-app.mount("/static", StaticFiles(directory="static"), name="static")
-templates = Jinja2Templates(directory="templates")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Init DB
-init_db()
+class Pick(commands.Cog):
+    def __init__(self, bot):
+        self.bot = bot
 
-@app.get("/")
-async def leaderboard(request: Request):
-    leaderboard_data = get_leaderboard()
-    return templates.TemplateResponse("leaderboard.html", {"request": request, "players": leaderboard_data})
+    @app_commands.command(name="pick", description="Submit your team pick for this gameweek.")
+    @app_commands.describe(team="The team you want to pick")
+    async def pick(self, interaction: discord.Interaction, team: str):
+        if is_pick_locked():
+            await interaction.response.send_message("❌ Picks are locked. The gameweek has already started.", ephemeral=True)
+            return
 
-# Discord bot setup
-intents = discord.Intents.default()
-intents.message_content = True
-bot = commands.Bot(command_prefix="!", intents=intents)
+        current_gameweek = get_current_gameweek()
+        user_id = str(interaction.user.id)
+        name = interaction.user.display_name
 
-@bot.event
-async def on_ready():
-    print(f"{bot.user.name} is online!")
-    try:
-        # Replace with your actual server (guild) ID for instant slash command registration
-        synced = await bot.tree.sync(guild=discord.Object(id=1117171688531042474))
-        print(f"Synced {len(synced)} slash commands to your guild.")
-    except Exception as e:
-        print(f"Failed to sync commands: {e}")
+        with psycopg2.connect(DATABASE_URL, sslmode="require") as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM players WHERE discord_id = %s", (user_id,))
+                result = cur.fetchone()
 
-@bot.event
-async def setup_hook():
-    await bot.load_extension("pick")
-    await bot.load_extension("status")
-    await bot.load_extension("leaderboard")
+                if not result:
+                    cur.execute(
+                        "INSERT INTO players (discord_id, name) VALUES (%s, %s) RETURNING id",
+                        (user_id, name)
+                    )
+                    player_id = cur.fetchone()[0]
+                else:
+                    player_id = result[0]
 
-# Run bot in background thread
-def start_bot():
-    bot.run(os.getenv("DISCORD_TOKEN"))
+                # Check if already picked for this gameweek
+                cur.execute("SELECT id FROM picks WHERE player_id = %s AND gameweek = %s", (player_id, current_gameweek))
+                if cur.fetchone():
+                    await interaction.response.send_message(f"⚠️ You've already picked for Gameweek {current_gameweek}.", ephemeral=True)
+                    return
 
-if __name__ == "__main__":
-    Thread(target=start_bot).start()
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+                # Save the pick
+                cur.execute(
+                    "INSERT INTO picks (player_id, gameweek, team) VALUES (%s, %s, %s)",
+                    (player_id, current_gameweek, team)
+                )
+                conn.commit()
+
+        await interaction.response.send_message(f"✅ Pick submitted for Gameweek {current_gameweek}: **{team}**", ephemeral=True)
+
+    @pick.autocomplete("team")
+    async def team_autocomplete(self, interaction: discord.Interaction, current: str):
+        user_id = str(interaction.user.id)
+        current_gameweek = get_current_gameweek()
+
+        with psycopg2.connect(DATABASE_URL, sslmode="require") as conn:
+            with conn.cursor() as cur:
+                cur.execute("SELECT id FROM players WHERE discord_id = %s", (user_id,))
+                result = cur.fetchone()
+
+                if not result:
+                    return [app_commands.Choice(name=team, value=team) for team in PL_TEAMS if current.lower() in team.lower()]
+
+                player_id = result[0]
+                cur.execute("SELECT team FROM picks WHERE player_id = %s", (player_id,))
+                picked_teams = [row[0] for row in cur.fetchall()]
+
+                available_teams = [team for team in PL_TEAMS if team not in picked_teams]
+
+        filtered = [team for team in available_teams if current.lower() in team.lower()]
+        return [app_commands.Choice(name=team, value=team) for team in filtered[:25]]
+
+# 👇 MUST be at top level
+async def setup(bot):
+    await bot.add_cog(Pick(bot))
