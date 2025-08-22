@@ -1,21 +1,121 @@
+------------ NEW FILE: templates/leaderboard.html ------------
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Last Man Standing</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Last Man Standing Leaderboard</title>
   <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-  <h1>🏆 Last Man Standing Leaderboard</h1>
-  <table>
-    <tr><th>Name</th><th>Status</th><th>Wins</th></tr>
-    {% for player in players %}
-    <tr>
-      <td>{{ player[0] }}</td>
-      <td class="{{ 'in' if player[1] == 'In' else 'out' }}">{{ player[1] }}</td>
-      <td>{{ player[2] }}</td>
-    </tr>
-    {% endfor %}
-  </table>
+  <div class="container">
+    <h1>🏆 Last Man Standing</h1>
+    <p class="subtext">Premier League | Gameweek {{ gameweek or '?' }}</p>
+
+    {% if players %}
+      <table>
+        <thead>
+          <tr>
+            <th>Player</th>
+            <th>Status</th>
+            <th>Wins</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for player in players %}
+          <tr>
+            <td>{{ player[0] }}</td>
+            <td class="{{ 'in' if player[1] == 'In' else 'out' }}">
+              {{ player[1] }} {% if player[1] == 'In' %}🟢{% else %}🔴{% endif %}
+            </td>
+            <td>{{ player[2] }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="empty">No players yet! Be the first to join.</p>
+    {% endif %}
+
+    <div class="footer">
+      <p class="note">Page updates weekly after each gameweek result check.</p>
+    </div>
+  </div>
 </body>
 </html>
+
+------------ NEW FILE: static/style.css ------------
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #121212;
+  color: #f0f0f0;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.container {
+  max-width: 960px;
+  margin: 3rem auto;
+  padding: 1rem 2rem;
+  background-color: #1e1e1e;
+  border-radius: 8px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+h1 {
+  text-align: center;
+  font-size: 2.2rem;
+  margin-bottom: 0.2rem;
+}
+
+.subtext {
+  text-align: center;
+  font-size: 1rem;
+  color: #ccc;
+  margin-bottom: 2rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th, td {
+  padding: 0.75rem;
+  text-align: left;
+  border-bottom: 1px solid #333;
+}
+
+th {
+  background-color: #222;
+  font-size: 1rem;
+}
+
+tr:hover {
+  background-color: #2a2a2a;
+}
+
+.in {
+  color: #00ff88;
+  font-weight: bold;
+}
+
+.out {
+  color: #ff4a4a;
+  font-weight: bold;
+}
+
+.empty {
+  text-align: center;
+  font-style: italic;
+  color: #999;
+  margin-top: 2rem;
+}
+
+.footer {
+  margin-top: 3rem;
+  text-align: center;
+  font-size: 0.9rem;
+  color: #777;
+}
